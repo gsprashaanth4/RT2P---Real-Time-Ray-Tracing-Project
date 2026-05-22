@@ -98,9 +98,7 @@ Using quaternions helped avoid common Euler-angle issues such as:
 
 The quaternion system now forms the mathematical foundation of the renderer's camera orientation logic.
 
----
-
-# Fully Custom 6DOF Camera System
+## Fully Custom 6DOF Camera System
 
 A major focus of this project is the development of a true **6 Degrees of Freedom (6DOF)** camera system.
 
@@ -125,9 +123,7 @@ These updated basis vectors are then used for:
 - camera-space translation
 - local-axis movement
 
----
-
-# Real-Time Interactive Rendering
+## Real-Time Interactive Rendering
 
 Unlike the offline rendering approach used in the original educational implementation, this project introduces a real-time interactive rendering loop.
 
@@ -138,11 +134,9 @@ The renderer:
 - reconstructs viewport geometry every frame
 - streams rendered pixels directly into an SDL texture
 
----
+## Interactive Controls
 
-# Interactive Controls
-
-## Rotation Controls
+### Rotation Controls
 
 | Key | Action |
 |---|---|
@@ -153,7 +147,7 @@ The renderer:
 | `J` | Roll left |
 | `L` | Roll right |
 
-## Translation Controls
+### Translation Controls
 
 | Key | Action |
 |---|---|
@@ -164,7 +158,7 @@ The renderer:
 | `Shift + I` | Move upward |
 | `Shift + K` | Move downward |
 
-## Reset
+### Reset
 
 | Key | Action |
 |---|---|
