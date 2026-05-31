@@ -112,9 +112,9 @@ The camera system dynamically reconstructs its basis vectors every frame using t
 ### Dynamic Basis Reconstruction
 
 ```cpp
-vec3 forward = orientation.rotate(vec3(0,0,-1));
-vec3 up      = orientation.rotate(vec3(0,1,0));
 vec3 right   = orientation.rotate(vec3(1,0,0));
+vec3 up      = orientation.rotate(vec3(0,1,0));
+vec3 forward = orientation.rotate(vec3(0,0,1));
 ```
 
 These updated basis vectors are then used for:
@@ -140,12 +140,12 @@ The renderer:
 
 | Key | Action |
 |---|---|
-| `Q` | Yaw left |
-| `E` | Yaw right |
+| `J` | Yaw left |
+| `L` | Yaw right |
 | `I` | Pitch up |
 | `K` | Pitch down |
-| `J` | Roll left |
-| `L` | Roll right |
+| `U` | Roll left |
+| `O` | Roll right |
 
 ### Translation Controls
 
