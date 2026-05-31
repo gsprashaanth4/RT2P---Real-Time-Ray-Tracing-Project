@@ -12,9 +12,13 @@ class camera {
         /* Public Camera Parameters Here */
         double aspect_ratio = 4.0 / 3.0;        // defining the aspect ratio
         int image_width = 400;                  // defining the image width
-        vec3 forward_global = vec3(0,0,-1);     // defining global forward vector
+
         vec3 right_global   = vec3(1,0,0);      // defining global right vector
         vec3 up_global      = vec3(0,1,0);      // defining global up vector
+        vec3 forward_global = vec3(0,0,1);      // defining global forward vector
+
+        double movement_speed = 10;
+        double rotation_speed = 20;
         
         void render(const hittable& world) {    // main rendering function, with the actually hittable_list world, but hittable through inheritance
             initialize();                       // initializing the camera and SDL assets
@@ -24,11 +28,15 @@ class camera {
             SDL_Event event;
 
             float fps = 0.0f;
-            const int targetFrameTime = 20;     // ms = 50 FPS
+            Uint32 lastFrameTime = SDL_GetTicks();
+            SDL_Delay(1);
 
             while (running)
             {
                 Uint32 frameBegin = SDL_GetTicks();     // getting the frame beginning time in ms
+                double deltaTime = (frameBegin - lastFrameTime) / 1000.0;
+                lastFrameTime = frameBegin;
+                fps = 1.0/deltaTime;
 
                 // clearing render screen
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);     // black color for initial screen clearing
@@ -52,23 +60,24 @@ class camera {
 
                 /* GETTING THE APPROPRIATE INPUTS FOR THE QUATERNION ROTATION OF THE CAMERA WITH THE CAPTURED KEYBOARD STATE */
 
-                if (keystate[SDL_SCANCODE_Q])                                   app_yaw += 2.0;
-                if (keystate[SDL_SCANCODE_E])                                   app_yaw -= 2.0;
-                if (keystate[SDL_SCANCODE_L])                                   app_roll += 2.0;
-                if (keystate[SDL_SCANCODE_J])                                   app_roll -= 2.0;
-                if (keystate[SDL_SCANCODE_I] && !keystate[SDL_SCANCODE_LSHIFT]) app_pitch += 2.0;
-                if (keystate[SDL_SCANCODE_K] && !keystate[SDL_SCANCODE_LSHIFT]) app_pitch -= 2.0;
+                double time_scale_rot = rotation_speed * deltaTime;
+                if (keystate[SDL_SCANCODE_J])                                   app_yaw   -= time_scale_rot;
+                if (keystate[SDL_SCANCODE_L])                                   app_yaw   += time_scale_rot;
+                if (keystate[SDL_SCANCODE_U])                                   app_roll  -= time_scale_rot;
+                if (keystate[SDL_SCANCODE_O])                                   app_roll  += time_scale_rot;
+                if (keystate[SDL_SCANCODE_I] && !keystate[SDL_SCANCODE_LSHIFT]) app_pitch -= time_scale_rot;
+                if (keystate[SDL_SCANCODE_K] && !keystate[SDL_SCANCODE_LSHIFT]) app_pitch += time_scale_rot;
 
                 // RESETTING CAMERA TRANSFORMATION USING 0 KEY
                 if (keystate[SDL_SCANCODE_0]) {
                     camera_center = point3(0,0,0);
-                    orientation = quat(1.0, vec3(0.0, 0.0, 0.0));
+                    orientation   = quat(1.0, vec3(0.0, 0.0, 0.0));
                 }
 
                 // building the rotation quaternions with the recorded inputs
-                quat yaw_rot   = quat::build(up_global, app_yaw);
-                quat pitch_rot = quat::build(right_global, app_pitch);
-                quat roll_rot = quat::build(forward_global, app_roll);
+                quat yaw_rot   = quat::build(up_global,      app_yaw);
+                quat pitch_rot = quat::build(right_global,   app_pitch);
+                quat roll_rot  = quat::build(forward_global, app_roll);
 
                 // APPLYING THE ROTAION QUATERNIONS TO THE ORIENTATION QUATERNION (INTRINSIC/lOCAL AXES ROTATION)
                 // YAW FIRST, PITCH SECOND, ROLL THIRD APPLIED
@@ -77,17 +86,18 @@ class camera {
                 orientation *= roll_rot;
 
                 // calculating the basis vectors of the camera from the current orientation quaternion
-                vec3 forward = orientation.rotate(vec3(0,0,-1));
-                vec3 up      = orientation.rotate(vec3(0,1,0));
-                vec3 right   = orientation.rotate(vec3(1,0,0));
+                vec3 forward = orientation.rotate(forward_global);
+                vec3 up      = orientation.rotate(up_global);
+                vec3 right   = orientation.rotate(right_global);
 
+                double time_scale_pos = movement_speed * deltaTime;
                 /* NOW USING THE KEYSTATES ONCE AGAIN TO APPLY TRANSLATIONS WITH RESPECT TO THE NEWLY CONSTRUCTED BASIS VECTORS */
-                if (keystate[SDL_SCANCODE_W])                                   camera_center += forward * 0.05;
-                if (keystate[SDL_SCANCODE_S])                                   camera_center = camera_center - forward * 0.05;
-                if (keystate[SDL_SCANCODE_D])                                   camera_center += right * 0.05;
-                if (keystate[SDL_SCANCODE_A])                                   camera_center = camera_center - right * 0.05;
-                if (keystate[SDL_SCANCODE_I] && keystate[SDL_SCANCODE_LSHIFT])  camera_center = camera_center + up * 0.05;
-                if (keystate[SDL_SCANCODE_K] && keystate[SDL_SCANCODE_LSHIFT])  camera_center = camera_center - up * 0.05;
+                if (keystate[SDL_SCANCODE_W])                                   camera_center = camera_center + forward * time_scale_pos;
+                if (keystate[SDL_SCANCODE_S])                                   camera_center = camera_center - forward * time_scale_pos;
+                if (keystate[SDL_SCANCODE_D])                                   camera_center = camera_center + right   * time_scale_pos;
+                if (keystate[SDL_SCANCODE_A])                                   camera_center = camera_center - right   * time_scale_pos;
+                if (keystate[SDL_SCANCODE_I] && keystate[SDL_SCANCODE_LSHIFT])  camera_center = camera_center + up      * time_scale_pos;
+                if (keystate[SDL_SCANCODE_K] && keystate[SDL_SCANCODE_LSHIFT])  camera_center = camera_center - up      * time_scale_pos;
 
                 // calculating the viewport vectors from the new basis vectors of the camera
                 vec3 viewport_u = right * viewport_width;
@@ -132,18 +142,6 @@ class camera {
                 SDL_RenderCopy(renderer, screenTexture, NULL, NULL);    // copying the texture onto the SDL renderer
 
                 SDL_RenderPresent(renderer);                            // rendering the current screen
-
-                Uint32 frameDuration = SDL_GetTicks() - frameBegin;     // recording the finish time of rendering
-
-                // WAITING UNTIL THE TARGET FRAME TIME IS COMPLETE
-                if (frameDuration < targetFrameTime)
-                {
-                    SDL_Delay(targetFrameTime - frameDuration);
-                }
-
-                Uint32 totalFrameTime = SDL_GetTicks() - frameBegin;    // finding the total frame time spent
-
-                fps = 1000.0f / totalFrameTime;                         // calculating the FPS from the calculated frame time
  
                 // LOGGING in the CONSOLE
                 std::cout << "X: " << camera_center.x() << "   Y: " << camera_center.y() << "   Z: " << camera_center.z() << "   FPS: " << fps << "\n";
