@@ -9,10 +9,10 @@ int main () {
     hittable_list world;
 
     // creating and adding hittable objects to the world
-    world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
-    world.add(make_shared<sphere>(point3(0,1,-1), 0.5));
-    world.add(make_shared<sphere>(point3(2,1,-1), 0.5));
-    world.add(make_shared<sphere>(point3(0,-100.5,-1), 100));
+    world.add(make_shared<sphere>(point3(0,0,1), 0.5));
+    world.add(make_shared<sphere>(point3(0,1,1), 0.5));
+    world.add(make_shared<sphere>(point3(2,1,1), 0.5));
+    world.add(make_shared<sphere>(point3(0,-100.5,1), 100));
 
     // creating a camera object
     camera cam1;
